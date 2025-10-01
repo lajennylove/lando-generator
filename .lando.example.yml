@@ -1,0 +1,154 @@
+name: workouts
+recipe: wordpress
+config:
+  webroot: web
+  php: '8.3'
+  via: apache
+  database: mariadb:10.6
+  xdebug: false
+
+services:
+  appserver:
+    build_as_root:
+      - apt-get update -y && apt-get install -y vim openssh-client curl sshpass
+      - curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+      - apt-get install -y nodejs
+      - npm install -g yarn
+    run_as_root:
+      - mkdir -p /var/www/.ssh /root/.ssh
+      - cp /app/setup/id_ed25519 /var/www/.ssh/id_ed25519
+      - cp /app/setup/id_ed25519.pub /var/www/.ssh/id_ed25519.pub
+      - cp /app/setup/id_ed25519 /root/.ssh/id_ed25519
+      - cp /app/setup/id_ed25519.pub /root/.ssh/id_ed25519.pub
+      - chmod 700 /var/www/.ssh /root/.ssh
+      - chmod 600 /var/www/.ssh/id_ed25519 /root/.ssh/id_ed25519
+      - chmod 644 /var/www/.ssh/id_ed25519.pub /root/.ssh/id_ed25519.pub
+      - echo "StrictHostKeyChecking no" > /var/www/.ssh/config
+      - echo "StrictHostKeyChecking no" > /root/.ssh/config
+      - ssh-keyscan -H github.com >> /var/www/.ssh/known_hosts
+      - ssh-keyscan -H github.com >> /root/.ssh/known_hosts
+      - chown -R www-data:www-data /var/www/.ssh
+      - chown -R root:root /root/.ssh
+      - chown -R www-data:www-data /app
+
+  cache:
+    type: redis:7
+    portforward: true
+    ssl: false
+
+
+tooling:
+  composer:
+    service: appserver
+    description: Run composer commands
+    cmd: composer
+
+  inst-acf:
+    service: appserver
+    description: Install ACF Pro plugin from private repository
+    user: root
+    cmd: bash -c "cd /app/web/wp-content/plugins && git clone git@github.com:lajennylove/acf-pro.git advanced-custom-fields-pro && wp plugin activate advanced-custom-fields-pro --path=/app/web --allow-root && echo 'ACF Pro installed and activated successfully'"
+
+  inst-acf-composer:
+    service: appserver
+    description: Install ACF Composer
+    user: root
+    cmd: bash -c "cd /app/web/wp-content/themes/PROJECT_NAME && composer require log1x/acf-composer --no-interaction && wp acorn vendor:publish --tag='acf-composer' --allow-root && echo 'ACF Composer installed successfully'"
+
+  inst-poet:
+    service: appserver
+    description: Install Poet
+    user: root
+    cmd: bash -c "cd /app/web/wp-content/themes/PROJECT_NAME && composer require log1x/poet --no-interaction && echo 'Poet installed successfully'"
+
+  wpinstall:
+    service: appserver
+    description: Install WordPress
+    cmd: bash -c "mkdir -p /app/web && cd /app/web && wp core download --locale=en_CA && wp config create --path=/app/web/ --dbname=wordpress --dbuser=wordpress --dbpass=wordpress --dbhost=database && wp core install --url=PROJECT_NAME.lndo.site --title=PROJECT_NAME --admin_user=jenny --admin_password='7Fu0BnAmpU(71NjR%Q0jJEAH' --admin_email=jenniferm@pacificdev.com"
+
+  sageinstall:
+    service: appserver
+    description: Install Sage theme
+    cmd: bash -c "cd /tmp && composer create-project roots/sage PROJECT_NAME && mv PROJECT_NAME /app/web/wp-content/themes/ && ls -la /app/web/wp-content/themes/"
+
+  acorninstall:
+    service: appserver
+    description: Install and configure Acorn
+    user: root
+    cmd: bash -c "cd /app/web/wp-content/themes/pacific && wp theme activate PROJECT_NAME --path=/app/web --allow-root && wp acorn acorn:install --allow-root"
+
+  wp:
+    service: appserver
+    description: Run WP-CLI commands
+    cmd: wp
+
+  yarn:
+    service: appserver
+    description: Run yarn commands
+    cmd: yarn
+
+  inst:
+    service: appserver
+    description: Install Node dependencies
+    user: root
+    cmd: bash -c "cd /app/web/wp-content/themes/pacific && yarn"
+
+  dev:
+    service: appserver
+    description: Run Yarn in development mode
+    user: root
+    cmd: bash -c "cd /app/web/wp-content/themes/pacific && yarn dev"
+
+  build:
+    service: appserver
+    description: Run Yarn to build assets
+    user: root
+    cmd: bash -c "cd /app/web/wp-content/themes/pacific && yarn build"
+
+  purge:
+    service: appserver
+    description: Purge all Acorn caches and views
+    user: root
+    cmd: bash -c "cd /app/web/wp-content/themes/pacific && wp acorn optimize:clear --allow-root && wp acorn config:clear --allow-root && wp acorn view:clear --allow-root && wp acorn cache:clear --allow-root && echo 'All Acorn caches and views have been purged successfully!'"
+
+  purge-full:
+    service: appserver
+    description: Full purge of all Acorn caches, views, and WordPress caches
+    user: root
+    cmd: bash -c "cd /app/web/wp-content/themes/pacific && wp acorn optimize:clear --allow-root && wp acorn config:clear --allow-root && wp acorn view:clear --allow-root && wp acorn cache:clear --allow-root && wp cache flush --allow-root && wp rewrite flush --allow-root && echo 'Full cache purge completed successfully!'"
+
+  test:
+    service: appserver
+    description: Run PEST test suite
+    user: root
+    cmd: bash -c "cd /app/web/wp-content/themes/pacific && ./vendor/bin/pest"
+
+  test-parallel:
+    service: appserver
+    description: Run PEST tests in parallel (Pest v4 built-in parallel support)
+    user: root
+    cmd: bash -c "cd /app/web/wp-content/themes/pacific && ./vendor/bin/pest --parallel"
+
+  pestinstall:
+    service: appserver
+    description: Install PEST PHP testing framework
+    user: root
+    cmd: bash -c "cd /app/web/wp-content/themes/pacific && composer config allow-plugins.pestphp/pest-plugin true --no-interaction && composer require pestphp/pest --dev --with-all-dependencies --no-interaction && mkdir -p tests && ./vendor/bin/pest --init && sed -i 's/pest()->extend(Tests\\\\TestCase::class)->in(\\\"Feature\\\");/\/\/ pest()->extend(Tests\\\\TestCase::class)->in(\\\"Feature\\\");/' tests/Pest.php && composer dump-autoload"
+
+  acfinstall:
+    service: appserver
+    description: Install and activate ACF Pro plugin
+    user: www-data
+    cmd: bash -c "cd /app/web/wp-content/plugins && git clone git@github.com:lajennylove/acf-pro.git advanced-custom-fields-pro && wp plugin activate advanced-custom-fields-pro --path=/app/web"
+
+  acfcomposerinstall:
+    service: appserver
+    description: Install ACF Composer
+    user: root
+    cmd: bash -c "cd /app/web/wp-content/themes/pacific && composer require log1x/acf-composer --no-interaction && wp acorn vendor:publish --tag='acf-composer' --allow-root"
+
+  poetinstall:
+    service: appserver
+    description: Install Poet
+    user: root
+    cmd: bash -c "cd /app/web/wp-content/themes/pacific && composer require log1x/poet --no-interaction"
