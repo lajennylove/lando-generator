@@ -16,10 +16,10 @@ services:
       - npm install -g yarn
     run_as_root:
       - mkdir -p /var/www/.ssh /root/.ssh
-      - cp /app/setup/id_ed25519 /var/www/.ssh/id_ed25519
-      - cp /app/setup/id_ed25519.pub /var/www/.ssh/id_ed25519.pub
-      - cp /app/setup/id_ed25519 /root/.ssh/id_ed25519
-      - cp /app/setup/id_ed25519.pub /root/.ssh/id_ed25519.pub
+      - cp /Users/lajennylove/code/projects/lando-generator/setup/id_ed25519 /var/www/.ssh/id_ed25519
+      - cp /Users/lajennylove/code/projects/lando-generator/setup/id_ed25519.pub /var/www/.ssh/id_ed25519.pub
+      - cp /Users/lajennylove/code/projects/lando-generator/setup/id_ed25519 /root/.ssh/id_ed25519
+      - cp /Users/lajennylove/code/projects/lando-generator/setup/id_ed25519.pub /root/.ssh/id_ed25519.pub
       - chmod 700 /var/www/.ssh /root/.ssh
       - chmod 600 /var/www/.ssh/id_ed25519 /root/.ssh/id_ed25519
       - chmod 644 /var/www/.ssh/id_ed25519.pub /root/.ssh/id_ed25519.pub

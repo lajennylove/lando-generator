@@ -88,15 +88,20 @@ print_success "Project name '$PROJECT_NAME' has been applied to:"
 echo "  - name: $PROJECT_NAME"
 echo "  - theme path: /app/web/wp-content/themes/$PROJECT_NAME"
 
-# Copy SSH keys from central location to current project
-print_info "Setting up SSH keys for Git access..."
-if [ -d "$SCRIPT_DIR/setup" ]; then
-    mkdir -p setup
-    cp "$SCRIPT_DIR/setup/id_ed25519" setup/ 2>/dev/null || print_warning "Private key not found in central location"
-    cp "$SCRIPT_DIR/setup/id_ed25519.pub" setup/ 2>/dev/null || print_warning "Public key not found in central location"
-    print_success "SSH keys copied to current project"
+# Clean up any existing setup directory (from previous runs)
+if [ -d "setup" ]; then
+    print_info "Removing existing setup directory to avoid duplicates..."
+    rm -rf setup
+    print_success "Existing setup directory removed"
+fi
+
+# Verify SSH keys exist in central location
+print_info "Verifying SSH keys in central location..."
+if [ -f "$SCRIPT_DIR/setup/id_ed25519" ] && [ -f "$SCRIPT_DIR/setup/id_ed25519.pub" ]; then
+    print_success "SSH keys found in central location - will be used directly"
 else
-    print_warning "SSH keys directory not found in central location"
+    print_warning "SSH keys not found in central location: $SCRIPT_DIR/setup/"
+    print_info "Make sure you have id_ed25519 and id_ed25519.pub in the setup directory"
 fi
 
 echo
@@ -197,6 +202,13 @@ execute_run_all() {
     fi
     print_success "Assets built successfully"
     echo
+    
+    # Final cleanup - remove any setup directory that might have been created
+    if [ -d "setup" ]; then
+        print_info "Cleaning up temporary setup directory..."
+        rm -rf setup
+        print_success "Temporary setup directory removed"
+    fi
     
     print_success "🎉 Complete setup finished for project: $PROJECT_NAME"
     print_info "Your WordPress site with Sage theme, Acorn, PEST testing, ACF Composer, and Poet is ready!"

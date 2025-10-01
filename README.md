@@ -22,7 +22,7 @@ A powerful bash script and zsh function to automate the creation of `.lando.yml`
 - 🧪 **PEST Testing**: PHP testing framework setup
 - 📝 **ACF Composer**: Advanced Custom Fields builder
 - 📚 **Poet**: Additional library integration
-- 🔑 **SSH Key Management**: Automatic SSH key copying for private repositories
+- 🔑 **SSH Key Management**: Uses central SSH keys directly (no duplication)
 - 🚀 **One-Command Setup**: Full environment setup with `run-all` option
 - 📍 **Remote Usage**: Use from any directory via zsh function
 
@@ -43,7 +43,7 @@ graph TD
     B --> C[Reads template file]
     C --> D[Replaces placeholders with project name]
     D --> E[Creates .lando.yml in current directory]
-    E --> F[Copies SSH keys to setup/ directory]
+    E --> F[Verifies SSH keys in central location]
     F --> G{run-all option?}
     G -->|Yes| H[Executes full setup sequence]
     G -->|No| I[Setup complete]
@@ -64,7 +64,7 @@ graph TD
 
 - **Template System**: Uses `.lando.example.yml` as a template with placeholders
 - **Path Resolution**: Automatically finds script location and works from any directory
-- **SSH Key Management**: Copies SSH keys from central location to project
+- **SSH Key Management**: Uses SSH keys directly from central location (no duplication)
 - **Error Handling**: Comprehensive error checking and user feedback
 - **Colored Output**: Beautiful terminal output with emojis and colors
 
@@ -136,10 +136,7 @@ When you run `lando-create my-project`, the following files are created in your 
 
 ```
 your-project/
-├── .lando.yml          # Lando configuration file
-└── setup/              # SSH keys directory
-    ├── id_ed25519      # Private SSH key
-    └── id_ed25519.pub  # Public SSH key
+└── .lando.yml          # Lando configuration file
 ```
 
 When you run `lando-create my-project run-all`, additionally:
@@ -147,7 +144,6 @@ When you run `lando-create my-project run-all`, additionally:
 ```
 your-project/
 ├── .lando.yml          # Lando configuration file
-├── setup/              # SSH keys directory
 └── web/                # WordPress installation
     ├── wp-admin/       # WordPress admin
     ├── wp-content/     # WordPress content
@@ -156,6 +152,8 @@ your-project/
     ├── wp-includes/    # WordPress core
     └── index.php       # WordPress entry point
 ```
+
+**Note**: SSH keys are used directly from the central location (`/Users/lajennylove/code/projects/lando-generator/setup/`) and are not copied to individual projects, avoiding duplication and security issues.
 
 ## 📁 Project Structure
 
@@ -183,7 +181,7 @@ Edit `.lando.example.yml` to customize the default configuration:
 
 ### SSH Key Setup
 
-The script automatically copies SSH keys from the central `setup/` directory to each project. Make sure your SSH keys are properly configured:
+The script uses SSH keys directly from the central `setup/` directory (no copying). Make sure your SSH keys are properly configured:
 
 1. **Generate SSH keys** (if you don't have them):
    ```bash
