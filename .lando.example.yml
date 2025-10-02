@@ -14,12 +14,14 @@ services:
       - curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
       - apt-get install -y nodejs
       - npm install -g yarn
+    volumes:
+      - LANDO_GENERATOR_PATH/setup:/lando-generator-setup
     run_as_root:
       - mkdir -p /var/www/.ssh /root/.ssh
-      - cp LANDO_GENERATOR_PATH/setup/id_ed25519 /var/www/.ssh/id_ed25519
-      - cp LANDO_GENERATOR_PATH/setup/id_ed25519.pub /var/www/.ssh/id_ed25519.pub
-      - cp LANDO_GENERATOR_PATH/setup/id_ed25519 /root/.ssh/id_ed25519
-      - cp LANDO_GENERATOR_PATH/setup/id_ed25519.pub /root/.ssh/id_ed25519.pub
+      - cp /lando-generator-setup/id_ed25519 /var/www/.ssh/id_ed25519
+      - cp /lando-generator-setup/id_ed25519.pub /var/www/.ssh/id_ed25519.pub
+      - cp /lando-generator-setup/id_ed25519 /root/.ssh/id_ed25519
+      - cp /lando-generator-setup/id_ed25519.pub /root/.ssh/id_ed25519.pub
       - chmod 700 /var/www/.ssh /root/.ssh
       - chmod 600 /var/www/.ssh/id_ed25519 /root/.ssh/id_ed25519
       - chmod 644 /var/www/.ssh/id_ed25519.pub /root/.ssh/id_ed25519.pub
