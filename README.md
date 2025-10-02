@@ -1,6 +1,6 @@
 # 🚀 Lando Generator
 
-A powerful bash script and zsh function to automate the creation of `.lando.yml` files for WordPress development with Sage theme, Acorn, PEST testing, ACF Composer, and Poet.
+A powerful bash script and shell function to automate the creation of `.lando.yml` files for WordPress development with Sage theme, Acorn, PEST testing, ACF Composer, and Poet. Works on both Linux and macOS.
 
 ## 📋 Table of Contents
 
@@ -24,7 +24,8 @@ A powerful bash script and zsh function to automate the creation of `.lando.yml`
 - 📚 **Poet**: Additional library integration
 - 🔑 **SSH Key Management**: Uses central SSH keys directly (no duplication)
 - 🚀 **One-Command Setup**: Full environment setup with `run-all` option
-- 📍 **Remote Usage**: Use from any directory via zsh function
+- 📍 **Remote Usage**: Use from any directory via shell function (bash/zsh)
+- 🌍 **Cross-Platform**: Works on Linux and macOS with dynamic path detection
 
 ## 🛠️ How It Works
 
@@ -33,7 +34,7 @@ A powerful bash script and zsh function to automate the creation of `.lando.yml`
 1. **`lando-create.sh`** - Main bash script that generates `.lando.yml` files
 2. **`.lando.example.yml`** - Template file with all configurations
 3. **`setup/`** - Directory containing SSH keys for private repository access
-4. **Zsh Function** - Allows usage from any directory
+4. **Shell Function** - Allows usage from any directory (bash/zsh)
 
 ### Script Flow
 
@@ -72,10 +73,12 @@ graph TD
 
 ### Prerequisites
 
-- macOS (tested on macOS 14.6.0)
+- **Operating System**: Linux or macOS
+  - Linux: Tested on Arch Linux
+  - macOS: Tested on macOS 14.6.0
 - [Lando](https://lando.dev/) installed
 - [Docker](https://www.docker.com/) running
-- zsh shell
+- Bash or Zsh shell
 - SSH keys for private repository access
 
 ### Setup Steps
@@ -93,25 +96,94 @@ graph TD
    cp ~/.ssh/id_ed25519.pub setup/
    ```
 
-3. **Add Zsh Function** to your `~/.zshrc`:
+3. **Add Shell Function** to your shell configuration file:
+
+   **For Bash (Linux/macOS)** - Add to `~/.bashrc`:
    ```bash
-   # Add this function to your ~/.zshrc file
+   # Lando Generator Function
+   # Add this function to use lando-create from any directory
    lando-create() {
-       local script_path="/Users/lajennylove/code/projects/lando-generator/lando-create.sh"
+       # Try to find the script in common locations
+       local script_path=""
+       local possible_paths=(
+           "/home/$USER/code/lando-generator/lando-create.sh"
+           "$HOME/code/lando-generator/lando-create.sh"
+           "$HOME/lando-generator/lando-create.sh"
+           "./lando-create.sh"
+           "lando-create.sh"
+       )
        
-       if [ ! -f "$script_path" ]; then
-           echo "❌ Error: lando-create.sh not found at $script_path"
-           echo "Please update the script_path in your .zshrc function"
+       # Check each possible path
+       for path in "${possible_paths[@]}"; do
+           if [ -f "$path" ]; then
+               script_path="$path"
+               break
+           fi
+       done
+       
+       # If not found, try to find it in the current directory or PATH
+       if [ -z "$script_path" ]; then
+           script_path=$(which lando-create.sh 2>/dev/null || echo "")
+       fi
+       
+       if [ -z "$script_path" ] || [ ! -f "$script_path" ]; then
+           echo "❌ Error: lando-create.sh not found"
+           echo "Please ensure the lando-generator project is installed and accessible"
+           echo "Tried paths: ${possible_paths[*]}"
            return 1
        fi
        
-       # Call the script from the central location
+       # Call the script from the found location
+       bash "$script_path" "$@"
+   }
+   ```
+
+   **For Zsh (macOS)** - Add to `~/.zshrc`:
+   ```bash
+   # Lando Generator Function
+   # Add this function to use lando-create from any directory
+   lando-create() {
+       # Try to find the script in common locations
+       local script_path=""
+       local possible_paths=(
+           "/Users/$USER/code/lando-generator/lando-create.sh"
+           "$HOME/code/lando-generator/lando-create.sh"
+           "$HOME/lando-generator/lando-create.sh"
+           "./lando-create.sh"
+           "lando-create.sh"
+       )
+       
+       # Check each possible path
+       for path in "${possible_paths[@]}"; do
+           if [ -f "$path" ]; then
+               script_path="$path"
+               break
+           fi
+       done
+       
+       # If not found, try to find it in the current directory or PATH
+       if [ -z "$script_path" ]; then
+           script_path=$(which lando-create.sh 2>/dev/null || echo "")
+       fi
+       
+       if [ -z "$script_path" ] || [ ! -f "$script_path" ]; then
+           echo "❌ Error: lando-create.sh not found"
+           echo "Please ensure the lando-generator project is installed and accessible"
+           echo "Tried paths: ${possible_paths[*]}"
+           return 1
+       fi
+       
+       # Call the script from the found location
        bash "$script_path" "$@"
    }
    ```
 
 4. **Reload your shell**:
    ```bash
+   # For Bash
+   source ~/.bashrc
+   
+   # For Zsh
    source ~/.zshrc
    ```
 
@@ -153,7 +225,7 @@ your-project/
     └── index.php       # WordPress entry point
 ```
 
-**Note**: SSH keys are used directly from the central location (`/Users/lajennylove/code/projects/lando-generator/setup/`) and are not copied to individual projects, avoiding duplication and security issues.
+**Note**: SSH keys are used directly from the central location and are not copied to individual projects, avoiding duplication and security issues. The script automatically detects the correct path regardless of where you install the lando-generator project.
 
 ## 📁 Project Structure
 
@@ -162,7 +234,7 @@ lando-generator/
 ├── README.md                    # This file
 ├── lando-create.sh             # Main bash script
 ├── .lando.example.yml          # Template file
-├── lando-create-function.sh    # Zsh function (reference)
+├── lando-create-function.sh    # Shell function (reference)
 └── setup/                      # SSH keys directory
     ├── id_ed25519             # Private SSH key
     └── id_ed25519.pub         # Public SSH key
@@ -310,7 +382,8 @@ lando composer <command> # Run Composer commands
 4. **Function Not Found**:
    ```bash
    # Reload your shell
-   source ~/.zshrc
+   source ~/.bashrc    # For Bash
+   source ~/.zshrc     # For Zsh
    
    # Or restart your terminal
    ```
@@ -320,8 +393,11 @@ lando composer <command> # Run Composer commands
 Enable debug mode by setting the script path manually:
 
 ```bash
-# Test the script directly
-bash /Users/lajennylove/code/projects/lando-generator/lando-create.sh my-project
+# Test the script directly (replace with your actual path)
+bash /path/to/your/lando-generator/lando-create.sh my-project
+
+# Or test the function
+lando-create my-project
 ```
 
 ## 🤝 Contributing

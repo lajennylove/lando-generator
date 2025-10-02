@@ -81,6 +81,7 @@ print_success "Creating .lando.yml for project: $PROJECT_NAME"
 sed -e "s/^name: .*/name: $PROJECT_NAME/" \
     -e "s|/app/web/wp-content/themes/pacific|/app/web/wp-content/themes/$PROJECT_NAME|g" \
     -e "s|PROJECT_NAME|$PROJECT_NAME|g" \
+    -e "s|LANDO_GENERATOR_PATH|$SCRIPT_DIR|g" \
     "$TEMPLATE_FILE" > "$OUTPUT_FILE"
 
 print_success "Successfully created $OUTPUT_FILE"
