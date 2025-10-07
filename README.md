@@ -81,22 +81,47 @@ graph TD
 - Bash or Zsh shell
 - SSH keys for private repository access
 
-### Setup Steps
+### Method 1: Automated Installation (Recommended)
 
-1. **Clone or Download** this repository to your desired location:
+1. **Clone the repository**:
    ```bash
    git clone git@github.com:lajennylove/lando-generator.git
    cd lando-generator
    ```
 
-2. **Add SSH Keys** to the `setup/` directory:
+2. **Run the installer**:
    ```bash
-   # Copy your SSH keys to the setup directory
-   cp ~/.ssh/id_ed25519 setup/
-   cp ~/.ssh/id_ed25519.pub setup/
+   ./install.sh
    ```
 
-3. **Add Shell Function** to your shell configuration file:
+3. **Reload your shell**:
+   ```bash
+   # For Zsh
+   source ~/.zshrc
+   
+   # For Bash
+   source ~/.bashrc
+   ```
+
+4. **Test the installation**:
+   ```bash
+   lando-create --help
+   ```
+
+### Method 2: Manual Installation
+
+1. **Clone the repository**:
+   ```bash
+   git clone git@github.com:lajennylove/lando-generator.git
+   cd lando-generator
+   ```
+
+2. **Copy SSH keys**:
+   ```bash
+   cp ~/.ssh/id_ed25519* setup/
+   ```
+
+3. **Add function to your shell profile**:
 
    **For Bash (Linux/macOS)** - Add to `~/.bashrc`:
    ```bash
@@ -186,6 +211,10 @@ graph TD
    # For Zsh
    source ~/.zshrc
    ```
+
+### 📖 Detailed Installation Guide
+
+For comprehensive installation instructions, troubleshooting, and examples, see [INSTALL.md](INSTALL.md).
 
 ## 🚀 Usage
 
